@@ -28,6 +28,21 @@ Windows:
   permalink: /windows
   description: Windows 教程
 
+Cloudflare:
+  label: Cloudflare
+  permalink: /cloudflare
+  description: Cloudflare 配置与实践
+
+Linux:
+  label: Linux
+  permalink: /linux
+  description: Linux 配置与运维教程
+
+内网穿透:
+  label: 内网穿透
+  permalink: /nat-traversal
+  description: 内网服务远程访问教程
+
 hola:
   label: Hola
   permalink: /hola
