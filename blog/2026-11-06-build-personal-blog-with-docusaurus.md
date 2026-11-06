@@ -1,65 +1,60 @@
 ---
-title: 用 Docusaurus 和 GitHub Pages 搭建个人博客：Feisai 实践记录
-description: 按 Feisai 博客的实际项目，记录官方模板、本地运行、文档栏目、GitHub 组织站点、自动部署、作者识别和多人投稿的完整流程。
+title: 用 Docusaurus 和 GitHub Pages 搭建个人博客
+description: 从官方模板开始，搭建支持博客与文档的个人网站，配置 GitHub Pages 自动发布，并邀请其他人一起投稿。
 tags: [docusaurus]
 ---
 
-这篇教程记录 **Feisai** 个人博客的实际搭建方式：使用官方 Docusaurus 模板，在本地维护 Markdown，通过 GitHub Actions 构建，发布到 GitHub Pages。
+想搭一个既能写博客、又能整理教程和文档的个人网站，可以使用 **Docusaurus + GitHub Pages**。
 
-网站包含 **Tutorials、Guidelines、Blog、About** 四个入口。文章作者根据文件的首次 Git 提交自动识别，不需要每篇手填姓名。
+这篇教程从官方模板开始，介绍本地运行、栏目配置、自动发布和多人投稿。示例中的网站名称、文件夹名和 GitHub 组织名都可以替换成自己的。
 
 {/* truncate */}
 
-## 一、先分清本地项目、仓库和网站
+## 一、先确定网站放在哪里
 
-它们是三个不同的东西：
+本地文件夹、GitHub 仓库和网站地址分别承担不同作用：
 
-| 项目 | 本项目实际情况 |
-| --- | --- |
-| 网站名称 | Feisai |
-| 本地目录 | `/Users/zheng/Documents/GitHub/my-blog` |
-| 当前 GitHub 组织 | `zhengsaihong-tech` |
-| 当前仓库 | `zhengsaihong-tech/zhengsaihong-tech.github.io` |
-| 当前网站 | [https://zhengsaihong-tech.github.io/](https://zhengsaihong-tech.github.io/) |
-| 发布分支 | `main` |
-| 框架版本 | Docusaurus `3.10.2` |
-| CI 使用的 Node.js | `22` |
+| 项目 | 作用 | 示例 |
+| --- | --- | --- |
+| 网站名称 | 显示在页面上的品牌名 | `My Blog` |
+| 本地文件夹 | 保存源码和文章 | `my-blog` |
+| GitHub 组织 | 管理仓库和协作者 | `your-org` |
+| 仓库名称 | 保存网站项目 | `your-org.github.io` |
+| 网站地址 | 读者访问的入口 | `https://your-org.github.io/` |
 
-`my-blog` 只是电脑上的文件夹名，可以与组织名、仓库名不同。网站品牌也可以继续叫 Feisai。
+**`your-org` 是占位名称，操作时统一替换为自己的 GitHub 组织名。** 不需要让网站显示名称、本地文件夹名和组织名完全相同。
 
-本项目最初使用 `feisai-tech/feisai-tech.github.io`，后来 GitHub 组织和仓库更名。截至本文整理时，本地 `origin`、站点配置、README 及作者查询脚本仍包含旧名称。旧 GitHub 仓库链接目前会重定向到新仓库，但旧 Pages 首页实测返回 404，访问网站应使用上表的新网址。
+本文以组织站点为例。如果使用个人账号，也可以将组织名换成自己的 GitHub 用户名，创建 `用户名.github.io` 仓库。
 
-**重建同样的站点时，应直接填写当前组织名和仓库名。** 仓库重定向不会自动更新源码里的站点地址。
+## 二、这套方案如何运行
 
-## 二、为什么选择这套方案
-
-- **Docusaurus**：同时提供博客、文档侧边栏、代码高亮和浅色／深色模式。
-- **Markdown / MDX**：用文本写文章，图片和配置跟内容放在同一仓库。
-- **GitHub**：保存版本，也可以邀请别人一起投稿。
-- **GitHub Actions**：提交后自动测试、构建、部署。
-- **GitHub Pages**：托管构建后的静态页面。
-
-运行关系如下：
+- **Docusaurus**：提供博客、文档侧边栏、代码高亮和浅色／深色模式。
+- **Markdown / MDX**：用于写文章，可插入图片、代码和组件。
+- **GitHub**：保存源码、历史版本和协作者提交。
+- **GitHub Actions**：提交后自动构建网站。
+- **GitHub Pages**：提供静态网站托管。
 
 ```text
-本地编辑文章，或在 GitHub 网页编辑
-                  ↓
-            提交到 main
-                  ↓
-           GitHub Actions
-                  ↓
-   安装依赖 → 测试 → 类型检查 → 构建
-                  ↓
-          发布 build/ 目录
-                  ↓
-    https://zhengsaihong-tech.github.io/
+本地编辑，或在 GitHub 网页写文章
+                ↓
+          提交到 main
+                ↓
+         GitHub Actions
+                ↓
+  安装依赖 → 类型检查 → 构建
+                ↓
+        发布 build/ 目录
+                ↓
+   https://your-org.github.io/
 ```
 
-这套博客不需要自己购买服务器、安装数据库或长期运行 Node.js 服务。Node.js 用于本地预览和构建，线上提供的是构建后的静态文件。
+不需要自己购买服务器或安装数据库。Node.js 用于本地开发和构建，线上提供的是生成后的静态页面。
 
-## 三、准备开发环境
+## 三、准备环境
 
-准备 Git、Node.js 22 和 npm。可从 [Node.js 官网](https://nodejs.org/) 安装 Node.js，npm 随 Node.js 一起安装。
+准备一个 GitHub 账号，并安装 Git、Node.js 22 和 npm。Node.js 可从 [官网](https://nodejs.org/) 安装，npm 随 Node.js 一起安装。
+
+本文以 Docusaurus `3.10.2` 为例，便于固定工具版本；升级时按官方说明检查 Node.js 要求。
 
 终端检查：
 
@@ -69,90 +64,88 @@ node --version
 npm --version
 ```
 
-先确认 Git 提交身份。以下姓名和邮箱是占位示例，要换成自己的：
+配置 Git 提交身份，换成自己的姓名和已绑定 GitHub 的邮箱：
 
 ```bash
 git config --global user.name "Your Name"
-git config --global user.email "your-github-email@example.com"
+git config --global user.email "your-email@example.com"
 ```
 
-提交邮箱应绑定到自己的 GitHub 账号，也可以使用 GitHub **Settings → Emails** 提供的隐私邮箱。作者自动识别依靠 GitHub 对提交的账号关联，仅修改 `user.name` 不够。
+也可以使用 GitHub **Settings → Emails** 提供的隐私邮箱。如果只想给当前项目设置身份，进入项目目录后执行不带 `--global` 的相同命令。
 
-已有其他项目且不想修改全局配置时，可进入博客目录后，使用不带 `--global` 的相同命令设置当前仓库。
+## 四、从官方模板创建项目
 
-## 四、创建项目，或者继续维护现有项目
-
-### 从官方模板新建
-
-以下命令只用于**尚未创建项目**的情况，不要在已有的 `my-blog` 目录上重复执行：
+在自己习惯的工作目录打开终端，执行：
 
 ```bash
-mkdir -p /Users/zheng/Documents/GitHub
-cd /Users/zheng/Documents/GitHub
 npx create-docusaurus@3.10.2 my-blog classic --typescript
 cd my-blog
 npm run start
 ```
 
-这里指定 `3.10.2`，与本文项目的 Docusaurus 版本对应。官方模板会生成一个可以运行的基础站点；本文站点的首页设计、栏目和作者识别是后续定制，不是模板默认功能。
+`my-blog` 是本地文件夹名，可以自定义。不要在已有的同名项目上重复创建。
 
-### 维护现有的 Feisai 项目
+打开 [http://localhost:3000/](http://localhost:3000/)，即可看到官方模板。终端按 `Control + C` 停止开发服务。
 
-当前电脑已经有项目时，直接进入目录安装锁定版本的依赖：
-
-```bash
-cd /Users/zheng/Documents/GitHub/my-blog
-npm ci
-npm run start
-```
-
-本地访问 [http://localhost:3000/](http://localhost:3000/)。终端按 `Control + C` 停止服务。
-
-换电脑时，先克隆完整仓库，再安装依赖：
+已有项目或换电脑继续维护时，先克隆自己的仓库：
 
 ```bash
-mkdir -p /Users/zheng/Documents/GitHub
-cd /Users/zheng/Documents/GitHub
-git clone https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io.git my-blog
+git clone https://github.com/your-org/your-org.github.io.git my-blog
 cd my-blog
 npm ci
 npm run start
 ```
 
-这里不要加 `--depth=1`：本项目需要完整 Git 历史来查找每篇文章的首次提交。
+`npm ci` 会按照仓库中的 `package-lock.json` 安装依赖，适合已有项目和自动化构建。
 
-**现有项目新增文章的预览有一个额外条件：新文件必须先提交并推送到 GitHub。** 作者查询需要在 GitHub API 中找到那次提交，详细原因见后面的作者识别部分。
+## 五、认识项目目录
 
-## 五、实际目录结构与栏目配置
+官方 classic 模板中的常用位置：
 
 ```text
 my-blog/
-├── blog/                         # 博客文章
-│   └── tags.yml                   # 标签定义
-├── docs/
-│   ├── tutorial/                  # Tutorials 文档
-│   └── rule/                      # Guidelines 文档
+├── blog/                    # 博客文章、作者和标签配置
+├── docs/                    # 文档
 ├── src/
-│   ├── pages/
-│   │   ├── index.tsx              # 首页
-│   │   ├── index.module.css       # 首页样式
-│   │   ├── about.mdx              # About
-│   │   └── sources.mdx            # 转载来源说明
-│   └── css/custom.css            # 全站样式
-├── static/img/                    # 图片与标识
-├── scripts/
-│   ├── git-blog-authors.mts       # GitHub 作者查询
-│   └── git-blog-authors.test.mjs  # 作者识别测试
-├── .github/workflows/deploy.yml   # 自动发布
-├── docusaurus.config.ts           # 网站与插件配置
-├── sidebarsTutorial.ts            # Tutorials 侧边栏
-└── sidebarsRule.ts                # Guidelines 侧边栏
+│   ├── pages/               # 首页与独立页面
+│   └── css/custom.css       # 全站样式
+├── static/img/              # 图片和图标
+├── docusaurus.config.ts     # 网站配置
+├── sidebars.ts              # 默认文档侧边栏
+├── package.json             # 依赖与命令
+└── package-lock.json        # 锁定依赖版本
 ```
 
-本项目关闭了 classic preset 默认的 Docs 插件，再分别注册两个文档实例：
+主要修改位置：
+
+| 想改什么 | 修改哪里 |
+| --- | --- |
+| 网站名、描述、导航、页脚 | `docusaurus.config.ts` |
+| 首页内容 | `src/pages/index.tsx` |
+| 首页样式 | 模板中的首页样式文件 |
+| 全站颜色、字体和样式 | `src/css/custom.css` |
+| 博客文章 | `blog/` |
+| 教程和文档 | `docs/` |
+| 图片和图标 | `static/img/` |
+
+可以在 `src/pages/about.mdx` 新建 About 页面，写自己的介绍。
+
+## 六、按需要拆分 Tutorials 和 Guidelines
+
+如果只需要博客和一套文档，保留模板默认结构即可。
+
+如果希望导航包含 **Tutorials、Guidelines、Blog、About**，可以把文档拆成两个实例：
+
+```text
+docs/
+├── tutorial/       # Tutorials
+└── rule/           # Guidelines
+```
+
+先把原有文档移动到相应目录，并分别创建一篇 `intro.md`。再修改 `docusaurus.config.ts` 中对应的配置：
 
 ```ts
-// docusaurus.config.ts 中的配置片段
+// 配置片段：合并到现有 config 对象中
 presets: [
   ['classic', {
     docs: false,
@@ -179,12 +172,11 @@ plugins: [
 ],
 ```
 
-以上是栏目配置片段，不是完整配置文件，也省略了后文说明的 `processBlogPosts` 接入。实际文件见[仓库中的站点配置](https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io/blob/main/docusaurus.config.ts)。
+这里的 `docs: false` 用于关闭默认文档实例，避免与新实例重复。
 
-两个侧边栏文件分别导出自动生成配置：
+在项目根目录创建 `sidebarsTutorial.ts`：
 
 ```ts
-// sidebarsTutorial.ts
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
@@ -194,52 +186,79 @@ const sidebars: SidebarsConfig = {
 export default sidebars;
 ```
 
-`sidebarsRule.ts` 使用相同结构，将键名换成 `ruleSidebar`。导航中的文档入口用 `docSidebar` 类型，并分别指定 `docsPluginId: 'tutorial'` 和 `docsPluginId: 'rule'`。
+再创建 `sidebarsRule.ts`，使用相同结构，将键名 `tutorialSidebar` 改为 `ruleSidebar`。
 
-导航顺序是 **Tutorials → Guidelines → Blog → About**。栏目名使用英文，文章正文可以使用中文。
-
-## 六、使用 GitHub 组织站点地址
-
-个人账号站点通常是 `用户名.github.io`。希望网址使用组织名称，就创建 GitHub 组织，再在组织下创建名称为 **组织名.github.io** 的仓库。
-
-本项目当前对应：
-
-```text
-组织：zhengsaihong-tech
-仓库：zhengsaihong-tech.github.io
-网站：https://zhengsaihong-tech.github.io/
-```
-
-站点配置与当前名称对齐时，这四项应写为：
+在 `themeConfig.navbar.items` 中配置入口：
 
 ```ts
-url: 'https://zhengsaihong-tech.github.io',
-baseUrl: '/',
-organizationName: 'zhengsaihong-tech',
-projectName: 'zhengsaihong-tech.github.io',
+items: [
+  {
+    type: 'docSidebar',
+    sidebarId: 'tutorialSidebar',
+    docsPluginId: 'tutorial',
+    label: 'Tutorials',
+    position: 'left',
+  },
+  {
+    type: 'docSidebar',
+    sidebarId: 'ruleSidebar',
+    docsPluginId: 'rule',
+    label: 'Guidelines',
+    position: 'left',
+  },
+  {to: '/blog', label: 'Blog', position: 'left'},
+  {to: '/about', label: 'About', position: 'left'},
+],
 ```
 
-这里 `baseUrl` 是 `/`。普通项目仓库如果叫 `my-blog`，Pages 地址一般会包含 `/my-blog/`，对应的 `baseUrl` 也要包含这个子路径。
+同时检查首页按钮和页脚，替换模板原有的文档链接，避免还指向已移动的页面。拆分栏目是可选定制，需要对应内容时再做。
 
-网站改名后，要检查站点配置、Git 远程地址和作者脚本中的仓库地址。本项目仍存在旧名称的情况已在第一节说明，不能只改 GitHub 上的组织名就认为所有链接都更新了。
+## 七、创建 GitHub 仓库并配置站点地址
 
-对于已经存在的本地仓库，可把远程地址明确改成当前地址：
+在 GitHub 创建组织，然后在该组织下创建公开仓库：
+
+```text
+组织名：your-org
+仓库名：your-org.github.io
+```
+
+创建空仓库即可，暂时不额外生成 README，便于首次推送本地项目。
+
+修改 `docusaurus.config.ts` 中的站点配置：
+
+```ts
+title: 'My Blog',
+tagline: '记录学习、实践与生活',
+url: 'https://your-org.github.io',
+baseUrl: '/',
+organizationName: 'your-org',
+projectName: 'your-org.github.io',
+```
+
+组织站点使用根路径，所以 `baseUrl` 为 `/`。如果仓库只是普通的 `my-blog` 项目，地址通常是 `https://your-org.github.io/my-blog/`，则要改为 `baseUrl: '/my-blog/'`。
+
+本地项目关联远程仓库：
 
 ```bash
-git remote set-url origin https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io.git
-git remote -v
+git init
+git branch -M main
+git add .
+git commit -m "Initialize blog"
+git remote add origin https://github.com/your-org/your-org.github.io.git
 ```
 
-新创建且尚未关联任何远程地址的项目，才使用 `git remote add origin ...`。
+如果已经配置过 `origin`，用 `git remote -v` 查看；需要修改地址时使用 `git remote set-url origin 新地址`。
 
-## 七、配置 GitHub Actions 自动发布
+以后更改账号名、组织名或仓库名，也要同步检查源码里的 `url`、`baseUrl` 和远程地址。
 
-进入仓库 **Settings → Pages → Build and deployment**，将 **Source** 设为 **GitHub Actions**。
+## 八、配置自动发布
 
-本项目的发布文件是 `.github/workflows/deploy.yml`，完整内容如下：
+进入仓库 **Settings → Pages → Build and deployment**，把 **Source** 设置为 **GitHub Actions**。
+
+在本地创建 `.github/workflows/deploy.yml`：
 
 ```yaml
-name: Deploy Feisai to GitHub Pages
+name: Deploy blog to GitHub Pages
 
 on:
   push:
@@ -258,18 +277,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --experimental-strip-types --test scripts/git-blog-authors.test.mjs
       - run: npm run typecheck
       - run: npm run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build
@@ -289,77 +303,30 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-`fetch-depth: 0` 保留完整历史，供作者识别使用。`GITHUB_TOKEN` 由 GitHub Actions 自动提供，不需要把个人 Token 写进仓库。
-
-这份流程包含本项目定制作者功能的测试；从官方模板新建时，还需要接入下一节的脚本才能直接使用完整流程。
-
-发布不使用 `npm run deploy`，也不需要手动上传 `build/` 或维护 `gh-pages` 分支。提交到 `main` 后，Actions 会构建并发布。
-
-## 八、文章作者如何自动识别
-
-Docusaurus 默认可以通过文章里的 `authors` 字段设置作者。本项目改为在构建时查询首次提交者，因此**文章里不写 `authors`**。
-
-实际逻辑在 [`scripts/git-blog-authors.mts`](https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io/blob/main/scripts/git-blog-authors.mts)：
-
-1. 对文章文件执行 `git log --follow --diff-filter=A`，找出首次添加它的提交。
-2. 查询 GitHub Commit API，获得提交关联的 GitHub 账号。
-3. 查询该账号的公开资料，使用显示名、头像和 GitHub 链接；未填写显示名时使用用户名。
-4. 用这份资料生成文章作者卡片，不显示职称。
-5. 本项目额外为 `zhengsaihong` 账号关联 X：`@Jeremy8zsh`。
-
-后续其他人修改文章，或 Git 能追踪到文件重命名时，仍按首次添加文件的提交识别作者。它识别的是**首次 Git 提交者**，不会判断转载文章的真正原作者；转载署名和许可需要在正文中另外说明。
-
-复用这项定制功能时，从仓库取得作者脚本及测试，并在站点配置中接入：
-
-```ts
-import {processBlogPosts} from './scripts/git-blog-authors.mts';
-
-// classic preset 的 blog 配置内
-blog: {
-  processBlogPosts,
-  showReadingTime: true,
-},
-```
-
-项目 `tsconfig.json` 的 `compilerOptions` 中还启用了 `allowImportingTsExtensions: true`。脚本中的 Commit API 仓库路径需要与自己的仓库对应，X 链接也应按自己的账号修改。
-
-这套识别有几个实际限制：
-
-- 新文件尚未提交时，没有首次提交可查，预览和构建会报错。
-- 只提交到本地、还未推送时，GitHub 无法查询这次提交。
-- 提交邮箱未关联 GitHub 账号时，无法识别账号，构建会停止。
-- 查询依赖 GitHub API，API 不可用或触发限流时会报错。
-- 把项目整个重新导入为一个新仓库，会失去原有文章的首次提交历史。
-
-已有文章编辑后可以本地预览，因为它的首次提交已经存在于远程；新增文章则先提交、推送，再预览。推送到 `main` 同时会触发正式发布。
-
-本地频繁查询触发未认证 API 限流时，如果已经登录官方 GitHub CLI，可以只给本次命令提供凭据：
+先在本地检查，再提交发布配置并推送：
 
 ```bash
-GITHUB_TOKEN="$(gh auth token)" npm run start
+npm run typecheck
+npm run build
+git add .github/workflows/deploy.yml
+git commit -m "Add GitHub Pages deployment"
+git push -u origin main
 ```
 
-这个命令不会把 Token 写进源码。它要求电脑已安装并登录 `gh`；普通网页投稿不需要安装 GitHub CLI。
+上面的命令假设其他网站配置已经包含在初始化提交中；如果之后又修改了文件，需要把对应改动也加入提交。
 
-## 九、日常怎么写和发布文章
+推送后打开仓库 **Actions**，等待 `build` 和 `deploy` 都成功，再访问 `https://your-org.github.io/`。
 
-### 方式一：在电脑上写
+使用这份流程时，不需要手动上传 `build/`，也不需要另建 `gh-pages` 分支。
 
-开始前确认没有未处理的本地改动，再同步远程：
+## 九、写一篇文章
 
-```bash
-cd /Users/zheng/Documents/GitHub/my-blog
-git status
-git pull --ff-only origin main
-```
-
-在 `blog/` 下新建 `2026-11-06-my-new-post.md`：
+在 `blog/` 新建文件，例如 `2026-11-06-my-first-post.md`：
 
 ````md
 ---
-title: 我的新文章
-description: 用一句话介绍这篇文章。
-tags: [docusaurus]
+title: 我的第一篇文章
+description: 用一句话介绍文章内容。
 ---
 
 这里是文章摘要。
@@ -371,89 +338,121 @@ tags: [docusaurus]
 这里写完整内容。
 
 ```bash
-echo "Hello, Feisai"
+echo "Hello, blog"
 ```
 ````
 
-文件名使用 `YYYY-MM-DD-英文短名.md`。`truncate` 标记之前的内容显示在博客列表摘要中。新标签可以先在 `blog/tags.yml` 注册；本示例复用已有的 `docusaurus` 标签。
+文件名建议使用 `YYYY-MM-DD-英文短名.md`。`truncate` 标记之前的内容用于博客列表摘要。
 
-图片放到 `static/img/`，例如 `static/img/my-post/screenshot.png`，正文引用：
+图片可以放在 `static/img/my-post/screenshot.png`，正文引用：
 
 ```md
 ![操作截图](/img/my-post/screenshot.png)
 ```
 
-确认内容后，只暂存这次文章和实际新增的附件：
+本地预览：
 
 ```bash
-git add blog/2026-11-06-my-new-post.md
-git commit -m "Add new blog post"
+npm run start
+```
+
+确认后提交对应文章和实际新增的附件：
+
+```bash
+git add blog/2026-11-06-my-first-post.md
+git commit -m "Add first blog post"
 git push origin main
 ```
 
-如果新增图片或修改了标签定义，也要将对应文件一并加入提交。不要因为发布一篇文章而把目录里无关的改动一起提交。
+网站会自动更新，文章路径通常为 `/blog/2026/11/06/my-first-post`。
 
-推送后打开仓库 **Actions**，等待 `build` 和 `deploy` 都成功。上面示例文章的站内路径为 `/blog/2026/11/06/my-new-post`。
+也可以直接进入自己仓库的 `blog/` 目录，点击 **Add file → Create new file**，填写文件名和内容，再 **Commit changes**。这样不需要本地安装开发环境。
 
-### 方式二：直接在 GitHub 网页写
+## 十、可选：根据首次提交自动显示作者
 
-1. 打开[仓库的 blog 目录](https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io/tree/main/blog)。
-2. 点击 **Add file → Create new file**。
-3. 填写带日期的 `.md` 文件名，按上面的格式写内容。
-4. 点击 **Commit changes**，有权限且仓库规则允许时直接提交到 `main`。
-5. 在 **Actions** 查看发布结果。
+官方模板支持手动填写作者；也可以定制为按文章首次 Git 提交识别作者。这是额外功能，前面的基础搭建流程不依赖它。
 
-这样不需要在电脑上安装 Node.js 或 Git，网页提交也会用于自动识别作者。
+如果希望多人投稿时不用每篇手填 `authors`，可以在构建阶段增加以下处理：
 
-## 十、邀请别人一起写
+1. 使用 `git log --follow --diff-filter=A` 查找文件首次添加的提交。
+2. 通过 GitHub Commit API 找到该提交关联的账号。
+3. 通过 GitHub User API 获取显示名、头像和主页地址。
+4. 使用 Docusaurus 的 `processBlogPosts` 接口设置文章的作者信息。
 
-组织角色和仓库权限是两层设置：
+GitHub API 的路径分别为：
 
-| 设置 | 本项目投稿者应选什么 |
+```text
+GET /repos/your-org/your-org.github.io/commits/{commit_sha}
+GET /users/{username}
+```
+
+实现时，把自己的作者处理函数接入 classic preset 的 `blog.processBlogPosts`。接口定义见 [Docusaurus Blog 插件文档](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog#processBlogPosts)。
+
+该扩展需要同步调整部署流程：给 `actions/checkout` 设置 `fetch-depth: 0`，并在构建步骤通过环境变量传入 GitHub 自动提供的 `${{ secrets.GITHUB_TOKEN }}`。
+
+注意以下边界：
+
+- 首次提交者的 Git 邮箱必须关联到正确的 GitHub 账号。
+- 后续修改不应覆盖原作者；文件重命名依靠 Git 历史追踪。
+- 它识别的是首次提交者，不能自动判断转载内容的真正作者。
+- 新文章如果还没推送，GitHub API 无法查询首次提交，采用这种实现时就需要先推送再预览。
+- GitHub API 不可用、限流或账号无法关联时，应明确报告错误。
+- X 等社交账号需要单独配置，不能把所有投稿者都绑定成同一个人的账号。
+
+基础模板没有这项扩展，新文章可直接在本地预览。选择自动作者方案时，再按自己的发布习惯处理这些限制。
+
+## 十一、邀请别人一起写
+
+邀请协作者时，要区分组织角色和仓库权限：
+
+| 设置 | 常用选择 |
 | --- | --- |
-| Organization role | `Member`，组织普通成员 |
-| Repository role | `Write`，允许向博客仓库提交 |
+| Organization role | `Member`：组织普通成员 |
+| Repository role | `Write`：允许向指定仓库提交 |
 
-在组织的 **People → Invite member** 邀请对方加入，角色选 `Member`。对方接受后，到博客仓库 **Settings → Collaborators and teams → Add people**，为他授予 `Write` 权限。
+在组织 **People → Invite member** 中邀请对方，角色选 `Member`。对方接受后，进入博客仓库 **Settings → Collaborators and teams → Add people**，授予 `Write` 权限。
 
-只邀请进组织，不代表一定拥有仓库写权限；应检查这份仓库上的实际授权。
+加入组织不一定自动获得仓库写权限，要检查具体仓库的授权。
 
-对方拿到权限后，可以用 GitHub 网页新建文章，也可以克隆仓库提交。首次添加文章必须由对方自己的账号提交，才能显示他的 GitHub 资料。如果由我代为首次提交，即使正文写了他的名字，自动作者仍会识别为我。
+对方可以在 GitHub 网页写文章，也可以克隆仓库后本地提交。如果启用了上一节的自动作者识别，文章首次提交应由实际作者自己的账号完成。
 
-需要审核后再发布时，让对方创建分支并提交 Pull Request；审阅后合并到 `main` 才触发正式发布。无论怎样合并，最终保留下来的首次添加文件提交必须关联到正确作者。
+如果希望审核后再发布，让对方创建分支、提交 Pull Request，审核后合并到 `main`。仓库若设置了分支保护，也需要按规则走 Pull Request。
 
-## 十一、构建检查和常见问题
+## 十二、日常维护与排错
 
-本项目现有检查命令：
+每次本地开始写作前，确认工作区没有未处理的改动，再更新远程内容：
 
 ```bash
-node --experimental-strip-types --test scripts/git-blog-authors.test.mjs
+cd my-blog
+git status
+git pull --ff-only origin main
+```
+
+发布前检查：
+
+```bash
 npm run typecheck
 npm run build
 ```
 
-生产构建输出在 `build/`。需要查看构建后的效果时执行 `npm run serve`，打开终端实际显示的地址；不要与正在运行的开发服务占用同一端口。
+生产构建输出在 `build/`。执行 `npm run serve` 可以查看构建结果，打开终端实际显示的地址。
 
 | 现象 | 优先检查 |
 | --- | --- |
-| 网站 404 | 组织与仓库名称是否匹配；是否访问当前 Pages 地址；Pages Source 是否是 GitHub Actions；部署是否成功 |
-| 页面打开但图片、样式不对 | `url`、`baseUrl` 是否与站点地址匹配 |
-| 提示找不到文章首次提交 | 新文章是否提交并推送；是否使用完整 Git 历史 |
-| 提示提交未关联 GitHub account | 首次提交的作者邮箱是否绑定了正确 GitHub 账号 |
-| 作者查询返回 403 或 429 | GitHub API 限流或权限问题，检查构建日志与 Token 配置 |
-| 本地构建提示 Markdown / MDX 错误 | 检查 YAML 头部、代码块是否闭合，以及正文里的 JSX 特殊符号 |
-| 推送被拒绝 | 是否接受邀请并获得 `Write`；远程是否有新提交；分支是否要求走 Pull Request |
-| 新标签警告 | 检查 `blog/tags.yml` 是否定义该标签并一并提交 |
+| 网站 404 | 仓库名是否与账号／组织名匹配，Pages 来源是否为 GitHub Actions，部署是否成功 |
+| 样式或图片加载失败 | `url`、`baseUrl` 与真实访问地址是否一致 |
+| 文档链接失效 | 拆分目录后是否同步修改导航、首页和页脚链接 |
+| Markdown / MDX 编译失败 | YAML 头部格式、代码块闭合情况、正文里的 JSX 特殊符号 |
+| 推送被拒绝 | 是否获得 `Write` 权限，远程是否有新提交，分支是否要求 Pull Request |
+| 新标签出现警告 | 是否在 `blog/tags.yml` 中定义了该标签 |
+| 自动作者识别失败 | 是否有完整 Git 历史，首次提交是否已推送，邮箱与账号是否关联，API 是否可访问 |
 
-从别处导入文章时，另外确认来源和许可。本项目导入的 Tutorials 与 Guidelines 来源记录在 [Sources](/sources)，不是把组织名替换掉就成为原创。
+引用别人的教程、图片或文档时，需要按原许可保留署名和来源。
 
-## 十二、参考入口
+## 参考资料
 
-- [当前项目仓库](https://github.com/zhengsaihong-tech/zhengsaihong-tech.github.io)
-- [当前博客网站](https://zhengsaihong-tech.github.io/)
 - [Docusaurus 官方安装文档](https://docusaurus.io/docs/installation)
 - [Docusaurus 博客文档](https://docusaurus.io/docs/blog)
-- [Docusaurus GitHub Pages 部署文档](https://docusaurus.io/docs/deployment#deploying-to-github-pages)
+- [Docusaurus 多文档实例](https://docusaurus.io/docs/docs-multi-instance)
+- [Docusaurus GitHub Pages 部署](https://docusaurus.io/docs/deployment#deploying-to-github-pages)
 - [GitHub Pages 官方文档](https://docs.github.com/en/pages)
-
-本文按 2026 年 11 月 6 日的项目源码与 GitHub 仓库、Pages 信息整理。命令中的个人目录、组织名和仓库名仅对应本项目；搭建自己的站点时替换为自己的实际值。
